@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>最佳造型獎 - 後台</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#0e0b07;--card:#18130c;--card2:#211a10;--line:#3a2f1d;--gold:#e8c565;--gold2:#b8862b;
+  --txt:#f4ecd8;--sub:#a3957a;--ok:#3ad07a;--bad:#ff8f7a}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+  font-size:14px;padding:22px 16px 60px}
+.hide{display:none!important}
+.wrap{max-width:980px;margin:0 auto}
+.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+h1{font-size:21px;letter-spacing:.08em}
+h1 small{font-size:12px;color:var(--gold);letter-spacing:.3em;margin-left:8px;font-weight:600}
+.conn{font-size:12px;color:var(--sub);letter-spacing:.1em}
+.conn.off{color:var(--bad)}
+.tabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin-bottom:18px}
+.tab{padding:10px 18px;border:none;background:none;color:var(--sub);font-size:15px;font-family:inherit;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:.06em}
+.tab.on{color:var(--gold);border-bottom-color:var(--gold);font-weight:700}
+section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+section h2{font-size:15px;letter-spacing:.12em;margin-bottom:4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+section h2 .sp{flex:1}
+.desc{font-size:12px;color:var(--sub);line-height:1.7;margin-bottom:14px}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 15px;border-radius:9px;
+  border:1px solid var(--line);background:var(--card2);color:var(--txt);font-family:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+button:hover,.btn:hover{border-color:#5a4a2c}
+button:disabled{opacity:.4;cursor:not-allowed}
+.pri{background:linear-gradient(160deg,#f4d77f,#c0912f);color:#2a1c00;border:none;font-weight:700}
+.danger{background:#3a1d18;border-color:#7a3a2c;color:#ffd2c4}
+.sm{padding:6px 11px;font-size:13px}
+input[type=text],input[type=number],input[type=password]{width:100%;padding:10px 12px;border-radius:9px;border:1px solid var(--line);
+  background:#0f0c07;color:var(--txt);font-family:inherit;font-size:14px}
+input:focus{outline:none;border-color:var(--gold)}
+label.f{display:block;font-size:12px;color:var(--sub);letter-spacing:.1em;margin-bottom:12px}
+label.f input{margin-top:6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.chk{display:flex;align-items:center;gap:8px;font-size:13px;margin-bottom:14px;cursor:pointer}
+.chk input{width:17px;height:17px;accent-color:var(--gold)}
+
+.links{display:grid;gap:8px}
+.link{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+.link b{font-size:12px;color:var(--gold);letter-spacing:.1em;flex:none;width:52px}
+.link code{flex:1;min-width:0;font-size:12px;color:var(--sub);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1;min-width:120px;padding:14px;font-size:15px;font-weight:700}
+.seg button.on.idle{background:#2c2a26;border-color:#77705f}
+.seg button.on.open{background:#123222;border-color:var(--ok);color:#bff2d2}
+.seg button.on.closed{background:#3a2c0e;border-color:var(--gold);color:var(--gold)}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.c{background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:12px 14px}
+.c .n{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+.c .l{font-size:11px;color:var(--sub);letter-spacing:.2em;margin-top:4px}
+
+table{width:100%;border-collapse:collapse}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid #2b2316;vertical-align:middle}
+th{font-size:11px;color:var(--sub);letter-spacing:.16em;font-weight:600}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+tr:last-child td{border-bottom:none}
+.thumb{width:42px;height:56px;border-radius:6px;object-fit:cover;background:#2a2214;display:block;border:1px solid var(--line)}
+.nmc .a{font-weight:700}
+.nmc .b{font-size:12px;color:var(--sub);margin-top:2px}
+.acts{display:flex;gap:6px;justify-content:flex-end}
+.bar{display:inline-block;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--gold2),var(--gold));vertical-align:middle;margin-right:8px}
+.tie{font-size:11px;color:var(--bad);margin-left:6px}
+.empty{padding:22px;text-align:center;color:var(--sub)}
+
+.rv{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+.rv .now{font-size:13px;color:var(--sub)}
+.rv .now b{color:var(--gold);font-size:15px;margin-left:4px}
+.rv .big{padding:14px 22px;font-size:16px}
+.warn{background:#33260c;border:1px solid #6b5220;color:#f3d88f;border-radius:10px;padding:10px 12px;font-size:13px;line-height:1.6;margin-bottom:12px}
+.prev{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.prev .p{background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.prev .p .k{font-size:11px;color:var(--gold);letter-spacing:.2em}
+.prev .p .a{font-weight:700;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prev .p .v{font-size:12px;color:var(--sub);margin-top:2px}
+
+.fl{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.fi{display:flex;align-items:center;gap:8px}
+.fi .tg{flex:none;width:64px;font-size:11px;color:var(--sub);letter-spacing:.08em}
+.fi .tg.main{color:var(--gold)}
+.rule{font-size:12px;color:var(--sub);line-height:1.8;background:var(--card2);border-radius:10px;padding:10px 12px;margin-bottom:12px}
+
+/* 編輯視窗 */
+.modal{position:fixed;inset:0;z-index:50;background:rgba(5,4,2,.82);display:flex;align-items:center;justify-content:center;padding:16px;overflow:auto}
+.mbox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;width:100%;max-width:720px;max-height:100%;overflow:auto}
+.mbox h3{font-size:16px;letter-spacing:.1em;margin-bottom:16px}
+.edGrid{display:grid;grid-template-columns:260px 1fr;gap:20px}
+.edPh{display:flex;flex-direction:column;gap:10px}
+.cvWrap{position:relative;width:260px;height:347px;border-radius:12px;overflow:hidden;border:1.5px solid var(--gold);background:#211a10}
+#cv{width:100%;height:100%;display:block;touch-action:none}
+#cv.drag{cursor:grab}
+.ph0{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#6d5f40;font-size:13px;letter-spacing:.14em;pointer-events:none}
+.adj{font-size:12px;color:var(--sub)}
+.adj input[type=range]{width:100%;accent-color:var(--gold)}
+.kb{font-size:11px;color:var(--sub)}
+.mAct{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+
+#gate{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}
+#gate .g{width:100%;max-width:320px;text-align:center}
+#gate h2{font-size:18px;letter-spacing:.12em;margin-bottom:6px}
+#gate p{font-size:12px;color:var(--sub);margin-bottom:18px;letter-spacing:.2em}
+#gate button{width:100%;margin-top:10px;padding:12px}
+#pwErr{color:var(--bad);font-size:13px;margin-top:10px;min-height:1em}
+
+@media (max-width:680px){
+  .edGrid{grid-template-columns:1fr}.cvWrap{margin:0 auto}
+  .row2,.cards,.prev{grid-template-columns:1fr}
+  .hideM{display:none}
+}
+</style>
+</head>
+<body>
+
+<div id="gate"><div class="g">
+  <h2>最佳造型獎 ・ 後台</h2><p>COSTUME AWARD ADMIN</p>
+  <input type="password" id="pw" placeholder="管理密碼">
+  <button class="pri" id="pwGo">進入</button>
+  <div id="pwErr"></div>
+</div></div>
+
+<div class="wrap">
+  <div class="top">
+    <h1>最佳造型獎 後台<small>ADMIN</small></h1>
+    <div class="conn" id="conn">連線中…</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab" data-t="prep">① 活動準備</button>
+    <button class="tab" data-t="live">② 現場操作</button>
+  </div>
+
+  <!-- ========== 活動準備 ========== -->
+  <div id="tPrep">
+    <section>
+      <h2>候選人<span class="sp"></span><button class="pri sm" id="addCand">＋ 新增候選人</button></h2>
+      <div class="desc">照片上傳後會自動裁成直式 3:4 並壓縮，存檔後手機與投影畫面立即更新。排序依「編號」由小到大。</div>
+      <div id="candList"></div>
+    </section>
+
+    <section>
+      <h2>顯示欄位</h2>
+      <div class="desc">候選人要填哪些資料由這裡決定，最多 4 個。</div>
+      <div class="rule">
+        <b style="color:var(--gold)">排版規則</b><br>
+        ・第 1 欄是主標題（大字），其餘欄位在手機卡片上以「・」串成一行小字，過長自動截斷<br>
+        ・點開大圖與揭曉畫面會完整列出所有欄位<br>
+        ・投影照片牆顯示第 1、2 欄；人數多到格子變小時，自動只留第 1 欄
+      </div>
+      <div class="fl" id="fieldList"></div>
+      <div style="display:flex;gap:8px">
+        <button class="sm" id="addField">＋ 新增欄位</button>
+        <span style="flex:1"></span>
+        <button class="pri sm" id="saveFields">儲存欄位</button>
+      </div>
+    </section>
+
+    <section>
+      <h2>活動設定</h2>
+      <div class="desc">標題會同步顯示在手機頁與投影畫面上。</div>
+      <div class="row2">
+        <label class="f">主標題<input type="text" id="sTitle" maxlength="20"></label>
+        <label class="f">英文小標<input type="text" id="sKicker" maxlength="40"></label>
+      </div>
+      <label class="chk"><input type="checkbox" id="sShowVotes">揭曉時顯示得票數</label>
+      <div style="text-align:right"><button class="pri sm" id="saveSettings">儲存設定</button></div>
+    </section>
+
+    <section>
+      <h2>頁面網址</h2>
+      <div class="desc">投影畫面會自動產生投票頁的 QR code。</div>
+      <div class="links" id="links"></div>
+    </section>
+  </div>
+
+  <!-- ========== 現場操作 ========== -->
+  <div id="tLive" class="hide">
+    <section>
+      <h2>投票狀態</h2>
+      <div class="desc">手機頁會即時切換：尚未開始＝等待畫面，投票中＝可投票，已截止＝顯示截止。</div>
+      <div class="seg" id="seg">
+        <button data-s="idle" class="idle">尚未開始</button>
+        <button data-s="open" class="open">投票中</button>
+        <button data-s="closed" class="closed">已截止</button>
+      </div>
+      <div class="cards">
+        <div class="c"><div class="n" id="nVoters">0</div><div class="l">投票人數</div></div>
+        <div class="c"><div class="n" id="nCands">0</div><div class="l">候選人數</div></div>
+        <div class="c"><div class="n" id="nRound">1</div><div class="l">投票輪次</div></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>揭曉控制</h2>
+      <div class="desc">按第一下時會鎖定當下的前三名，之後依序揭曉 第三名 → 第二名 → 第一名 → 前三名總覽。</div>
+      <div id="rvWarn"></div>
+      <div class="rv">
+        <button class="pri big" id="rvNext">揭曉</button>
+        <button id="rvBack">回到照片牆</button>
+        <div class="now">投影目前：<b id="rvNow">照片牆</b></div>
+      </div>
+      <div class="prev" id="rvPrev"></div>
+    </section>
+
+    <section>
+      <h2>即時票數<span class="sp"></span><button class="sm" id="exp">匯出 CSV</button><button class="danger sm" id="clr">清除所有票數</button></h2>
+      <div class="desc">活動開始前務必清除測試票。清除後會進入新的一輪，已投過的手機可重新投票；候選人與照片不受影響。</div>
+      <div id="voteTable"></div>
+    </section>
+  </div>
+</div>
+
+<!-- 候選人編輯 -->
+<div class="modal hide" id="ed"><div class="mbox">
+  <h3 id="edTitle">新增候選人</h3>
+  <div class="edGrid">
+    <div class="edPh">
+      <div class="cvWrap"><canvas id="cv" width="540" height="720"></canvas><div class="ph0" id="ph0">尚未上傳照片</div></div>
+      <label class="btn">選擇照片<input type="file" accept="image/*" id="file" hidden></label>
+      <div class="adj hide" id="adj">
+        縮放　<input type="range" id="zoom" min="100" max="300" value="100">
+        <div style="margin-top:4px">可直接在照片上拖曳調整位置</div>
+      </div>
+      <div class="kb" id="kb"></div>
+    </div>
+    <div>
+      <label class="f">編號<input type="number" id="edNo" min="0" inputmode="numeric"></label>
+      <div id="edFields"></div>
+    </div>
+  </div>
+  <div class="mAct"><button id="edCancel">取消</button><button class="pri" id="edSave">儲存</button></div>
+</div></div>
+
+<script>
+/* ===================== 設定區 ===================== */
+const FB_CONFIG = {
+  apiKey:            "AIzaSyDl_NqANwk_lsfEL5kOyC1RJi29DLvGPU8",
+  authDomain:        "kuya-candy-game.firebaseapp.com",
+  databaseURL:       "https://kuya-candy-game-default-rtdb.firebaseio.com",
+  projectId:         "kuya-candy-game",
+  storageBucket:     "kuya-candy-game.firebasestorage.app",
+  messagingSenderId: "105923267148",
+  appId:             "1:105923267148:web:1f0e0db9de8cc2876c42e9"
+};
+const ROOT       = "costume";
+const ADMIN_PASS = "kuya2026";
+const MAX_FIELDS = 4;
+const PHOTO_W = 540, PHOTO_H = 720, PHOTO_Q = 0.8;   /* 照片輸出尺寸（直式 3:4）與壓縮品質 */
+const DEF_CFG = {
+  title:"最佳造型獎", kicker:"BEST COSTUME AWARD",
+  fields:[{id:"f1",label:"姓名"},{id:"f2",label:"部門"}],
+  status:"idle", round:1, showVotes:true
+};
+/* ================================================== */
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n==null?"":n).padStart(2,"0");
+function ssGet(k){ try{ return sessionStorage.getItem(k); }catch(e){ return null; } }
+function ssSet(k,v){ try{ sessionStorage.setItem(k,v); }catch(e){} }
+
+firebase.initializeApp(FB_CONFIG);
+const db = firebase.database();
+const R = p => db.ref(ROOT+(p?"/"+p:""));
+
+let cfg=null, cands={}, photos={}, votes={}, reveal={step:0};
+let settingsLoaded=false, fieldDraft=null, lastFieldsJson=null;
+
+/* ---------- 登入 ---------- */
+function tryLogin(){
+  if($("pw").value===ADMIN_PASS){ ssSet("costume_admin_ok","1"); $("gate").classList.add("hide"); start(); }
+  else $("pwErr").textContent="密碼錯誤";
+}
+$("pwGo").onclick=tryLogin;
+$("pw").addEventListener("keydown",e=>{ if(e.key==="Enter") tryLogin(); });
+if(ssGet("costume_admin_ok")==="1"){ $("gate").classList.add("hide"); start(); }
+
+/* ---------- 分頁 ---------- */
+function setTab(t){
+  document.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===t));
+  $("tPrep").classList.toggle("hide",t!=="prep"); $("tLive").classList.toggle("hide",t!=="live");
+  ssSet("costume_admin_tab",t);
+}
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+setTab(ssGet("costume_admin_tab")||"prep");
+
+/* ---------- 共用 ---------- */
+function fieldsOf(){ const f=cfg&&cfg.fields; return (Array.isArray(f)?f:Object.values(f||{})).filter(Boolean); }
+function list(){ return Object.keys(cands||{}).map(id=>Object.assign({id},cands[id])).sort((a,b)=>(+a.no||0)-(+b.no||0)); }
+function mainTxt(c){ const f=fieldsOf(); return f[0]?((c.vals||{})[f[0].id]||""):""; }
+function subTxt(c){ return fieldsOf().slice(1).map(f=>(c.vals||{})[f.id]).filter(v=>v).join("・"); }
+function tally(){
+  const r=(cfg&&cfg.round)||1, m={}; let n=0;
+  Object.values(votes||{}).forEach(v=>{
+    if(!v || (v.r||1)!==r) return; n++;
+    if(cands[v.c]) m[v.c]=(m[v.c]||0)+1;
+  });
+  return {m,n};
+}
+function ranking(){
+  const {m}=tally();
+  return list().map(c=>Object.assign({},c,{v:m[c.id]||0})).sort((a,b)=>b.v-a.v||(+a.no||0)-(+b.no||0));
+}
+
+/* ---------- 網址 ---------- */
+function renderLinks(){
+  /* 本機測試檔名為 costume_*.html；GitHub 正式版為 index.html（投票）／screen.html（投影） */
+  const LOCAL=/costume_[a-z]+\.html$/i.test(location.pathname);
+  const base=location.href.split(/[?#]/)[0].replace(/[^\/]*$/,"");
+  const items=[["投票頁",base+(LOCAL?"costume_vote.html":"")],["投影頁",base+(LOCAL?"costume_screen.html":"screen.html")]];
+  $("links").innerHTML=items.map(([k,u])=>
+    '<div class="link"><b>'+k+'</b><code>'+esc(u)+'</code>'+
+    '<button class="sm" data-copy="'+esc(u)+'">複製</button><a class="btn sm" href="'+esc(u)+'" target="_blank">開啟</a></div>').join("");
+}
+$("links").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-copy]"); if(!b) return;
+  try{ await navigator.clipboard.writeText(b.dataset.copy); b.textContent="已複製"; setTimeout(()=>b.textContent="複製",1200); }
+  catch(err){ prompt("請手動複製",b.dataset.copy); }
+});
+
+/* ---------- 活動設定 ---------- */
+function loadSettings(){
+  $("sTitle").value=cfg.title||""; $("sKicker").value=cfg.kicker||""; $("sShowVotes").checked=cfg.showVotes!==false;
+}
+$("saveSettings").onclick=async()=>{
+  try{
+    await R("config").update({title:$("sTitle").value.trim()||"最佳造型獎", kicker:$("sKicker").value.trim(), showVotes:$("sShowVotes").checked});
+    flash($("saveSettings"),"已儲存");
+  }catch(e){ alert("儲存失敗："+e.message); }
+};
+function flash(btn,t){ const o=btn.textContent; btn.textContent=t; setTimeout(()=>btn.textContent=o,1200); }
+
+/* ---------- 欄位設定 ---------- */
+function syncDraft(){ $("fieldList").querySelectorAll("input").forEach(inp=>{ fieldDraft[+inp.dataset.i].label=inp.value; }); }
+function renderFields(){
+  const fl=$("fieldList");
+  fl.innerHTML=fieldDraft.map((f,i)=>
+    '<div class="fi"><span class="tg'+(i===0?' main':'')+'">'+(i===0?'主標題':'欄位 '+(i+1))+'</span>'+
+    '<input type="text" data-i="'+i+'" value="'+esc(f.label)+'" maxlength="12" placeholder="欄位名稱，例如：部門">'+
+    '<button class="sm" data-del="'+i+'"'+(fieldDraft.length<=1?' disabled':'')+'>刪除</button></div>').join("");
+  $("addField").disabled = fieldDraft.length>=MAX_FIELDS;
+}
+$("fieldList").addEventListener("click",e=>{
+  const b=e.target.closest("[data-del]"); if(!b) return;
+  syncDraft(); fieldDraft.splice(+b.dataset.del,1); renderFields();
+});
+$("addField").onclick=()=>{
+  if(fieldDraft.length>=MAX_FIELDS) return;
+  syncDraft(); fieldDraft.push({id:"f"+Date.now().toString(36),label:""}); renderFields();
+  const ins=$("fieldList").querySelectorAll("input"); ins[ins.length-1].focus();
+};
+$("saveFields").onclick=async()=>{
+  syncDraft();
+  const clean=fieldDraft.map(f=>({id:f.id,label:f.label.trim()}));
+  if(clean.some(f=>!f.label)){ alert("欄位名稱不可空白"); return; }
+  try{ await R("config/fields").set(clean); flash($("saveFields"),"已儲存"); }
+  catch(e){ alert("儲存失敗："+e.message); }
+};
+
+/* ---------- 候選人列表 ---------- */
+function renderCands(){
+  const arr=list();
+  $("nCands").textContent=arr.length;
+  if(!arr.length){ $("candList").innerHTML='<div class="empty">還沒有候選人，按右上「新增候選人」開始</div>'; return; }
+  $("candList").innerHTML='<table><thead><tr><th>照片</th><th>編號</th><th>資料</th><th></th></tr></thead><tbody>'+
+    arr.map(c=>'<tr><td>'+(photos[c.id]?'<img class="thumb" src="'+photos[c.id]+'">':'<span class="thumb"></span>')+'</td>'+
+      '<td>No.'+esc(pad(c.no))+'</td>'+
+      '<td class="nmc"><div class="a">'+esc(mainTxt(c)||"（未填）")+'</div><div class="b">'+esc(subTxt(c))+'</div></td>'+
+      '<td><div class="acts"><button class="sm" data-ed="'+c.id+'">編輯</button><button class="sm danger" data-rm="'+c.id+'">刪除</button></div></td></tr>').join("")+
+    '</tbody></table>';
+}
+$("candList").addEventListener("click",async e=>{
+  const ed=e.target.closest("[data-ed]"), rm=e.target.closest("[data-rm]");
+  if(ed) openEditor(ed.dataset.ed);
+  if(rm){
+    const id=rm.dataset.rm, c=cands[id]; if(!c) return;
+    const v=tally().m[id]||0;
+    if(!confirm("確定刪除 No."+pad(c.no)+" "+mainTxt(c)+"？"+(v?"\n此人目前有 "+v+" 票，刪除後這些票會失效。":""))) return;
+    try{ const u={}; u["cands/"+id]=null; u["photos/"+id]=null; await R().update(u); }
+    catch(err){ alert("刪除失敗："+err.message); }
+  }
+});
+
+/* ---------- 編輯視窗 ---------- */
+const cv=$("cv"), ctx=cv.getContext("2d");
+let edId=null, srcImg=null, photoChanged=false, zoom=1, px=.5, py=.5;
+
+function openEditor(id){
+  edId=id||null; photoChanged=false; srcImg=null; zoom=1; px=.5; py=.5;
+  const c=id?cands[id]:null;
+  $("edTitle").textContent = c?"編輯候選人":"新增候選人";
+  const nextNo = list().reduce((m,x)=>Math.max(m,+x.no||0),0)+1;
+  $("edNo").value = c? c.no : nextNo;
+  $("edFields").innerHTML = fieldsOf().map((f,i)=>
+    '<label class="f">'+esc(f.label)+(i===0?'（主標題，必填）':'')+
+    '<input type="text" data-fid="'+f.id+'" maxlength="30" value="'+esc(c&&c.vals?c.vals[f.id]||"":"")+'"></label>').join("");
+  $("adj").classList.add("hide"); $("zoom").value=100; $("kb").textContent=""; $("file").value="";
+  ctx.clearRect(0,0,PHOTO_W,PHOTO_H); cv.classList.remove("drag");
+  if(id && photos[id]){
+    const im=new Image(); im.onload=()=>{ ctx.drawImage(im,0,0,PHOTO_W,PHOTO_H); }; im.src=photos[id];
+    $("ph0").classList.add("hide"); $("kb").textContent="目前照片約 "+Math.round(photos[id].length*0.75/1024)+" KB";
+  }else $("ph0").classList.remove("hide");
+  $("ed").classList.remove("hide");
+}
+$("addCand").onclick=()=>openEditor(null);
+$("edCancel").onclick=()=>$("ed").classList.add("hide");
+
+$("file").onchange=()=>{
+  const f=$("file").files[0]; if(!f) return;
+  const url=URL.createObjectURL(f), im=new Image();
+  im.onload=()=>{
+    srcImg=im; photoChanged=true; zoom=1; px=.5; py=.5; $("zoom").value=100;
+    $("adj").classList.remove("hide"); $("ph0").classList.add("hide"); cv.classList.add("drag");
+    draw();
+  };
+  im.onerror=()=>alert("這個檔案格式無法讀取（例如 HEIC），請改用 JPG 或 PNG");
+  im.src=url;
+};
+function geom(){
+  const w=srcImg.naturalWidth, h=srcImg.naturalHeight, s=Math.max(PHOTO_W/w,PHOTO_H/h)*zoom;
+  return {dw:w*s, dh:h*s};
+}
+function draw(){
+  if(!srcImg) return;
+  const {dw,dh}=geom();
+  ctx.fillStyle="#211a10"; ctx.fillRect(0,0,PHOTO_W,PHOTO_H);
+  ctx.drawImage(srcImg, -(dw-PHOTO_W)*px, -(dh-PHOTO_H)*py, dw, dh);
+  const kb=Math.round(cv.toDataURL("image/jpeg",PHOTO_Q).length*0.75/1024);
+  $("kb").textContent="壓縮後約 "+kb+" KB";
+}
+$("zoom").oninput=()=>{ zoom=$("zoom").value/100; draw(); };
+let dragging=null;
+cv.addEventListener("pointerdown",e=>{ if(!srcImg) return; dragging={x:e.clientX,y:e.clientY}; cv.setPointerCapture(e.pointerId); });
+cv.addEventListener("pointermove",e=>{
+  if(!dragging||!srcImg) return;
+  const ratio=PHOTO_W/cv.clientWidth, {dw,dh}=geom();
+  const dx=(e.clientX-dragging.x)*ratio, dy=(e.clientY-dragging.y)*ratio;
+  dragging={x:e.clientX,y:e.clientY};
+  if(dw>PHOTO_W) px=Math.min(1,Math.max(0,px-dx/(dw-PHOTO_W)));
+  if(dh>PHOTO_H) py=Math.min(1,Math.max(0,py-dy/(dh-PHOTO_H)));
+  draw();
+});
+["pointerup","pointercancel"].forEach(t=>cv.addEventListener(t,()=>dragging=null));
+
+$("edSave").onclick=async()=>{
+  const no=parseInt($("edNo").value,10);
+  if(isNaN(no)){ alert("請填編號"); return; }
+  const vals={};
+  $("edFields").querySelectorAll("input").forEach(inp=>{ const v=inp.value.trim(); if(v) vals[inp.dataset.fid]=v; });
+  const f0=fieldsOf()[0];
+  if(f0 && !vals[f0.id]){ alert("「"+f0.label+"」為必填"); return; }
+  const dup=list().find(x=>+x.no===no && x.id!==edId);
+  if(dup && !confirm("編號 "+pad(no)+" 已被「"+mainTxt(dup)+"」使用，仍要儲存？")) return;
+  const id=edId||("c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+  const old=edId&&cands[edId]&&cands[edId].vals||{};
+  /* 保留已被隱藏欄位的舊資料 */
+  Object.keys(old).forEach(k=>{ if(!fieldsOf().some(f=>f.id===k)) vals[k]=old[k]; });
+  const u={}; u["cands/"+id]={no:no, vals:vals, at:firebase.database.ServerValue.TIMESTAMP};
+  if(photoChanged && srcImg) u["photos/"+id]=cv.toDataURL("image/jpeg",PHOTO_Q);
+  const btn=$("edSave"); btn.disabled=true; btn.textContent="儲存中…";
+  try{ await R().update(u); $("ed").classList.add("hide"); }
+  catch(e){ alert("儲存失敗："+e.message); }
+  btn.disabled=false; btn.textContent="儲存";
+};
+
+/* ---------- 投票狀態 ---------- */
+function renderStatus(){
+  const st=(cfg&&cfg.status)||"idle";
+  document.querySelectorAll("#seg button").forEach(b=>b.classList.toggle("on",b.dataset.s===st));
+  $("nRound").textContent=(cfg&&cfg.round)||1;
+}
+document.querySelectorAll("#seg button").forEach(b=>b.onclick=async()=>{
+  try{ await R("config/status").set(b.dataset.s); }catch(e){ alert("切換失敗："+e.message); }
+});
+
+/* ---------- 揭曉 ---------- */
+function rvTop(){ const t=reveal&&reveal.top; return (Array.isArray(t)?t:Object.values(t||{})).filter(Boolean); }
+function renderReveal(){
+  const step=(reveal&&reveal.step)||0, top=rvTop();
+  const rk=ranking(), kLive=Math.min(3,rk.length), k=step?top.length:kLive;
+  let now="照片牆", next="", dis=false;
+  if(!step){ next = kLive? "揭曉第 "+kLive+" 名" : "尚無候選人"; dis=!kLive; }
+  else if(step<=k){ now="第 "+(k-step+1)+" 名"; next = step<k ? "揭曉第 "+(k-step)+" 名" : "顯示前三名總覽"; }
+  else { now="前三名總覽"; next="已全部揭曉"; dis=true; }
+  $("rvNow").textContent=now; $("rvNext").textContent=next; $("rvNext").disabled=dis;
+
+  const w=[];
+  if(!step && cfg && cfg.status==="open") w.push("投票仍在進行中。揭曉會以按下當下的票數鎖定名次，建議先切到「已截止」。");
+  if(!step){
+    for(let i=0;i<Math.min(3,rk.length);i++){
+      const nx=rk[i+1];
+      if(nx && rk[i].v>0 && nx.v===rk[i].v){ w.push("第 "+(i+1)+" 名與第 "+(i+2)+" 名同票（"+rk[i].v+" 票），系統以編號小者排前，請留意。"); }
+    }
+  }
+  $("rvWarn").innerHTML=w.map(t=>'<div class="warn">'+esc(t)+'</div>').join("");
+
+  const src = step ? top.map(t=>Object.assign({},cands[t.id]||{vals:{}},{id:t.id,v:t.v})) : rk.slice(0,3);
+  $("rvPrev").innerHTML = src.length ? src.map((c,i)=>
+    '<div class="p"><div class="k">第 '+(i+1)+' 名'+(step?'（已鎖定）':'（即時）')+'</div><div class="a">No.'+esc(pad(c.no))+' '+esc(mainTxt(c))+'</div><div class="v">'+(c.v||0)+' 票</div></div>').join("")
+    : '<div class="empty" style="grid-column:1/-1">尚無資料</div>';
+}
+$("rvNext").onclick=async()=>{
+  const step=(reveal&&reveal.step)||0;
+  try{
+    if(!step){
+      const top=ranking().slice(0,3).map(c=>({id:c.id,v:c.v}));
+      if(!top.length) return;
+      await R("reveal").set({step:1, top:top, at:firebase.database.ServerValue.TIMESTAMP});
+    }else{
+      const k=rvTop().length; if(step>k) return;
+      await R("reveal/step").set(step+1);
+    }
+  }catch(e){ alert("操作失敗："+e.message); }
+};
+$("rvBack").onclick=async()=>{
+  if((reveal&&reveal.step) && !confirm("回到照片牆？已鎖定的名次會清除，下次揭曉會重新計算")) return;
+  try{ await R("reveal").set({step:0}); }catch(e){ alert("操作失敗："+e.message); }
+};
+
+/* ---------- 票數 ---------- */
+function renderVotes(){
+  const {n}=tally(), rk=ranking(), max=Math.max(1,...rk.map(c=>c.v));
+  $("nVoters").textContent=n.toLocaleString();
+  if(!rk.length){ $("voteTable").innerHTML='<div class="empty">尚無候選人</div>'; return; }
+  $("voteTable").innerHTML='<table><thead><tr><th>名次</th><th>候選人</th><th class="hideM"></th><th class="r">票數</th><th class="r">佔比</th></tr></thead><tbody>'+
+    rk.map((c,i)=>{
+      const tie=(rk[i-1]&&rk[i-1].v===c.v&&c.v>0)||(rk[i+1]&&rk[i+1].v===c.v&&c.v>0);
+      return '<tr><td>'+(i+1)+(tie?'<span class="tie">同票</span>':'')+'</td>'+
+        '<td class="nmc"><div class="a">No.'+esc(pad(c.no))+' '+esc(mainTxt(c))+'</div><div class="b">'+esc(subTxt(c))+'</div></td>'+
+        '<td class="hideM" style="width:28%"><span class="bar" style="width:'+(c.v/max*100)+'%"></span></td>'+
+        '<td class="r">'+c.v+'</td><td class="r">'+(n?(c.v/n*100).toFixed(1):"0.0")+'%</td></tr>';
+    }).join("")+'</tbody></table>';
+}
+$("exp").onclick=()=>{
+  const {n}=tally(), rk=ranking(), fs=fieldsOf();
+  const q=s=>'"'+String(s==null?"":s).replace(/"/g,'""')+'"';
+  let csv="﻿"+["名次","編號"].concat(fs.map(f=>f.label)).concat(["票數","佔比"]).map(q).join(",")+"\n";
+  rk.forEach((c,i)=>{ csv+=[i+1,c.no].concat(fs.map(f=>(c.vals||{})[f.id]||"")).concat([c.v,(n?(c.v/n*100).toFixed(1):"0.0")+"%"]).map(q).join(",")+"\n"; });
+  csv+="\n"+q("投票人數")+","+n+"\n";
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));
+  a.download="costume_result.csv"; a.click();
+};
+$("clr").onclick=async()=>{
+  if(prompt("輸入管理密碼以清除全部票數")!==ADMIN_PASS) return;
+  if(!confirm("確定清除所有票數？此操作不可復原（候選人與照片不受影響）")) return;
+  try{
+    const u={}; u["votes"]=null; u["reveal"]={step:0}; u["config/round"]=((cfg&&cfg.round)||1)+1;
+    await R().update(u); alert("已清除，進入第 "+u["config/round"]+" 輪");
+  }catch(e){ alert("清除失敗："+e.message); }
+};
+
+/* ---------- 啟動 ---------- */
+let started=false;
+function start(){
+  if(started) return; started=true;
+  renderLinks();
+  R("config").on("value",s=>{
+    const v=s.val();
+    if(!v){ R("config").set(DEF_CFG); return; }
+    cfg=Object.assign({},DEF_CFG,v);
+    if(!settingsLoaded){ settingsLoaded=true; loadSettings(); }
+    const fj=JSON.stringify(fieldsOf());
+    if(fj!==lastFieldsJson){                 /* 只有欄位真的變了才重載，避免蓋掉未儲存的編輯 */
+      lastFieldsJson=fj; fieldDraft=fieldsOf().map(f=>({id:f.id,label:f.label||""})); renderFields();
+    }
+    renderStatus(); renderCands(); renderReveal(); renderVotes();
+  });
+  R("cands").on("value",s=>{ cands=s.val()||{}; if(cfg){ renderCands(); renderReveal(); renderVotes(); } });
+  R("photos").on("value",s=>{ photos=s.val()||{}; if(cfg) renderCands(); });
+  R("votes").on("value",s=>{ votes=s.val()||{}; if(cfg){ renderReveal(); renderVotes(); } });
+  R("reveal").on("value",s=>{ reveal=s.val()||{step:0}; if(cfg) renderReveal(); });
+  db.ref(".info/connected").on("value",s=>{
+    const on=!!s.val(); $("conn").textContent=on?"● Firebase 已連線 ・ 節點 "+ROOT:"● 連線中斷"; $("conn").classList.toggle("off",!on);
+  });
+}
+</script>
+</body>
+</html>

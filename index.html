@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>最佳造型獎 - 投票</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700;900&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<style>
+:root{--bg:#0c0905;--card:#18130b;--line:rgba(212,175,55,.26);--gold:#e8c565;--gold2:#b8862b;
+  --txt:#f7f0dc;--sub:#a99a78;--serif:"Noto Serif TC","Songti TC",serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif}
+body{min-height:100vh;background:
+  radial-gradient(120% 50% at 50% -8%,rgba(232,197,101,.22),transparent 60%),
+  radial-gradient(80% 40% at 100% 100%,rgba(184,134,43,.14),transparent 60%),var(--bg)}
+.hide{display:none!important}
+.goldtxt{background:linear-gradient(180deg,#fff4c9 0%,#f0cf78 42%,#b8862b 72%,#f7dc90 100%);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+
+.wrap{max-width:560px;margin:0 auto;padding:0 14px 130px}
+header{text-align:center;padding:26px 0 6px}
+.kicker{font-size:11px;letter-spacing:.5em;color:var(--gold);margin-bottom:8px;padding-left:.5em}
+h1{margin:0;font-family:var(--serif);font-weight:900;font-size:32px;letter-spacing:.12em;padding-left:.12em}
+.deco{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto 0;width:220px}
+.deco i{flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--gold))}
+.deco i:last-child{background:linear-gradient(90deg,var(--gold),transparent)}
+.deco b{width:7px;height:7px;transform:rotate(45deg);border:1px solid var(--gold)}
+.intro{text-align:center;font-size:13px;color:var(--sub);line-height:1.8;margin:14px 0 16px}
+.intro b{color:var(--gold);font-weight:600}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:14px;overflow:hidden;
+  transition:border-color .2s,transform .15s,box-shadow .2s;cursor:pointer}
+.card:active{transform:scale(.98)}
+.card.on{border-color:var(--gold);box-shadow:0 0 0 2px rgba(232,197,101,.35),0 6px 22px rgba(232,197,101,.18)}
+.ph{position:relative;aspect-ratio:3/4;background:#211a0e}
+.ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ph .ph0{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:13px;color:#6d5f40;letter-spacing:.2em}
+.no{position:absolute;left:8px;top:8px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;
+  letter-spacing:.06em;background:rgba(12,9,5,.72);color:var(--gold);border:1px solid rgba(232,197,101,.45)}
+.chk{position:absolute;right:8px;top:8px;width:28px;height:28px;border-radius:50%;display:none;
+  align-items:center;justify-content:center;background:linear-gradient(160deg,#f4d77f,#c0912f);
+  color:#2a1c00;font-weight:900;font-size:16px}
+.card.on .chk{display:flex}
+.meta{padding:9px 10px 11px}
+.nm{font-size:15px;font-weight:700;letter-spacing:.03em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.s2{font-size:12px;color:var(--sub);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:1em}
+
+.state{text-align:center;padding:60px 16px}
+.state .ico{font-size:40px;color:var(--gold);margin-bottom:14px}
+.state h2{font-family:var(--serif);font-size:24px;letter-spacing:.1em;margin:0 0 10px}
+.state p{color:var(--sub);font-size:14px;line-height:1.8;margin:0}
+.tick{width:76px;height:76px;border-radius:50%;margin:0 auto 20px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,#f4d77f,#c0912f);color:#2a1c00;font-size:38px;font-weight:900;
+  box-shadow:0 0 30px rgba(232,197,101,.35)}
+.mine{width:200px;margin:18px auto 18px;text-align:left}
+
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:30;padding:14px 16px calc(16px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(12,9,5,0),rgba(12,9,5,.96) 32%)}
+.bar .inner{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:12px}
+.sel{flex:1;min-width:0;display:flex;align-items:center;gap:10px}
+.sel img,.sel .t0{width:40px;height:53px;border-radius:7px;object-fit:cover;border:1.5px solid var(--gold);flex:none;background:#211a0e}
+.sel .tx{min-width:0}
+.sel .a{font-size:11px;color:var(--sub);letter-spacing:.12em}
+.sel .b{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button{font-family:inherit}
+.go{padding:15px 22px;border:none;border-radius:12px;font-size:16px;font-weight:700;letter-spacing:.08em;
+  background:linear-gradient(160deg,#f4d77f,#c0912f);color:#2a1c00;flex:none}
+.go:disabled{background:#2a2316;color:#6d5f40}
+.ghost{padding:15px 18px;border-radius:12px;border:1.5px solid var(--line);background:transparent;color:var(--txt);font-size:15px}
+
+/* 大圖 */
+.lb{position:fixed;inset:0;z-index:50;background:rgba(6,4,2,.92);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;padding:16px}
+.lbBox{width:100%;max-width:420px;max-height:100%;display:flex;flex-direction:column;position:relative}
+.lbImg{position:relative;border-radius:14px;overflow:hidden;border:1.5px solid var(--gold);background:#211a0e;
+  aspect-ratio:3/4;max-height:62vh;margin:0 auto;width:100%;max-width:calc(62vh * .75)}
+.lbImg img{width:100%;height:100%;object-fit:cover;display:block}
+.x{position:absolute;right:-4px;top:-46px;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);
+  background:rgba(24,19,11,.9);color:var(--txt);font-size:18px}
+.lbInfo{padding:14px 4px 4px;text-align:center}
+.lbInfo .n{font-size:12px;color:var(--gold);letter-spacing:.2em}
+.lbInfo .t{font-family:var(--serif);font-size:24px;font-weight:900;letter-spacing:.06em;margin:4px 0 8px;word-break:break-all}
+.lbInfo .f{font-size:13px;color:var(--sub);line-height:1.8;word-break:break-all}
+.lbInfo .f span{color:#7d6e4e;margin-right:6px}
+.lbBox .go{width:100%;margin-top:14px}
+
+/* 確認 */
+.cf{position:fixed;inset:0;z-index:60;background:rgba(6,4,2,.8);display:flex;align-items:flex-end;justify-content:center}
+.cfBox{width:100%;max-width:560px;background:#18130b;border-top:1.5px solid var(--gold);border-radius:20px 20px 0 0;
+  padding:24px 18px calc(20px + env(safe-area-inset-bottom));text-align:center}
+.cfBox img,.cfBox .t0{width:84px;height:112px;border-radius:10px;object-fit:cover;border:1.5px solid var(--gold);background:#211a0e;display:inline-block}
+.cfBox h3{margin:12px 0 4px;font-size:18px;letter-spacing:.04em;word-break:break-all}
+.cfBox p{margin:0 0 18px;font-size:13px;color:var(--sub)}
+.cfBtns{display:flex;gap:10px}
+.cfBtns .go{flex:1}
+.err{background:#3a1d18;border:1px solid #7a3a2c;color:#ffd2c4;border-radius:10px;padding:11px;font-size:13px;margin-top:12px;line-height:1.6}
+.tag{position:fixed;top:8px;right:10px;font-size:10px;color:#6d5f40;letter-spacing:.1em;z-index:5}
+</style>
+</head>
+<body>
+<div class="tag" id="conn"></div>
+<div class="wrap">
+  <header>
+    <div class="kicker" id="kicker">BEST COSTUME AWARD</div>
+    <h1 class="goldtxt" id="title">最佳造型獎</h1>
+    <div class="deco"><i></i><b></b><i></i></div>
+  </header>
+
+  <section id="vLoading" class="state"><h2>載入中…</h2><p>正在取得候選名單</p></section>
+
+  <section id="vWait" class="state hide">
+    <div class="ico">✦</div><h2>投票尚未開始</h2><p>請稍候，主持人宣布後<br>此頁會自動開放投票</p>
+  </section>
+
+  <section id="vClosed" class="state hide">
+    <div class="ico">✦</div><h2>投票已截止</h2><p>感謝參與，結果即將揭曉！</p>
+  </section>
+
+  <section id="vDone" class="state hide">
+    <div class="tick">✓</div><h2>投票完成</h2><p>你投給了</p>
+    <div class="mine" id="mine"></div>
+    <p>結果將於現場揭曉，敬請期待</p>
+  </section>
+
+  <section id="vPick" class="hide">
+    <p class="intro">點照片可看大圖<br>選出你心中的最佳造型（<b>每人 1 票</b>，送出後不可更改）</p>
+    <div class="grid" id="grid"></div>
+  </section>
+</div>
+
+<div class="bar hide" id="bar"><div class="inner">
+  <div class="sel" id="selInfo"></div>
+  <button class="go" id="btnGo">送出投票</button>
+</div></div>
+
+<div class="lb hide" id="lb"><div class="lbBox">
+  <button class="x" id="lbX">✕</button>
+  <div class="lbImg" id="lbImg"></div>
+  <div class="lbInfo" id="lbInfo"></div>
+  <button class="go" id="lbPick">選擇這位</button>
+</div></div>
+
+<div class="cf hide" id="cf"><div class="cfBox">
+  <div id="cfThumb"></div>
+  <h3 id="cfTxt"></h3>
+  <p>確定送出？送出後無法更改</p>
+  <div class="cfBtns"><button class="ghost" id="cfNo">再想想</button><button class="go" id="cfYes">確定送出</button></div>
+  <div class="err hide" id="err"></div>
+</div></div>
+
+<script>
+/* ===================== 設定區 ===================== */
+const FB_CONFIG = {
+  apiKey:            "AIzaSyDl_NqANwk_lsfEL5kOyC1RJi29DLvGPU8",
+  authDomain:        "kuya-candy-game.firebaseapp.com",
+  databaseURL:       "https://kuya-candy-game-default-rtdb.firebaseio.com",
+  projectId:         "kuya-candy-game",
+  storageBucket:     "kuya-candy-game.firebasestorage.app",
+  messagingSenderId: "105923267148",
+  appId:             "1:105923267148:web:1f0e0db9de8cc2876c42e9"
+};
+const ROOT = "costume";   /* Firebase 節點，與 predict / result 分開 */
+/* 候選人、照片、欄位、投票開關全部由 costume_admin.html 後台管理，不用改這裡 */
+/* ================================================== */
+
+firebase.initializeApp(FB_CONFIG);
+const db = firebase.database();
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const pad = n => String(n==null?"":n).padStart(2,"0");
+function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+function lsSet(k,v){ try{ localStorage.setItem(k,v); }catch(e){} }
+
+const LS = "costume_v1_";
+let voterId = lsGet(LS+"id");
+if(!voterId){ voterId="v"+Date.now().toString(36)+Math.random().toString(36).slice(2,8); lsSet(LS+"id",voterId); }
+
+let cfg=null, cands=null, photos={}, sel=null, lbId=null, sending=false;
+
+function fieldsOf(){ const f=cfg&&cfg.fields; return (Array.isArray(f)?f:Object.values(f||{})).filter(Boolean); }
+function list(){
+  return Object.keys(cands||{}).map(id=>Object.assign({id},cands[id]))
+    .sort((a,b)=>(+a.no||0)-(+b.no||0));
+}
+function mainTxt(c){ const f=fieldsOf(); return f[0] ? ((c.vals||{})[f[0].id]||"") : ""; }
+function subTxt(c){ return fieldsOf().slice(1).map(f=>(c.vals||{})[f.id]).filter(v=>v).join("・"); }
+function imgHTML(id,cls){
+  return photos[id] ? '<img'+(cls?' class="'+cls+'"':'')+' src="'+photos[id]+'" alt="">'
+                    : '<span class="t0'+(cls?' '+cls:'')+'"></span>';
+}
+function doneKey(){ return LS+"done_r"+((cfg&&cfg.round)||1); }
+
+function show(id){
+  ["vLoading","vWait","vClosed","vDone","vPick"].forEach(v=>$(v).classList.toggle("hide",v!==id));
+  $("bar").classList.toggle("hide", !(id==="vPick" && sel));
+}
+
+function view(){
+  if(!cfg || !cands){ show("vLoading"); return; }
+  $("title").textContent = cfg.title || "最佳造型獎";
+  $("kicker").textContent = cfg.kicker || "";
+  document.title = (cfg.title||"最佳造型獎")+" - 投票";
+  const mine = lsGet(doneKey());
+  if(mine){ renderMine(mine); show("vDone"); return; }
+  if(cfg.status==="open"){ renderGrid(); show("vPick"); renderBar(); }
+  else if(cfg.status==="closed") show("vClosed");
+  else show("vWait");
+}
+
+function renderGrid(){
+  const g=$("grid");
+  const arr=list();
+  if(sel && !cands[sel]) sel=null;
+  if(!arr.length){ g.innerHTML='<p class="intro" style="grid-column:1/-1">尚無候選人</p>'; return; }
+  g.innerHTML = arr.map(c=>
+    '<div class="card'+(c.id===sel?' on':'')+'" data-id="'+c.id+'">'+
+      '<div class="ph">'+(photos[c.id]?'<img src="'+photos[c.id]+'" alt="" loading="lazy">':'<span class="ph0">PHOTO</span>')+
+        '<span class="no">No.'+esc(pad(c.no))+'</span><span class="chk">✓</span></div>'+
+      '<div class="meta"><div class="nm">'+esc(mainTxt(c))+'</div><div class="s2">'+esc(subTxt(c))+'</div></div>'+
+    '</div>').join("");
+}
+$("grid").addEventListener("click",e=>{
+  const card=e.target.closest(".card"); if(card) openLb(card.dataset.id);
+});
+
+function openLb(id){
+  const c=cands[id]; if(!c) return;
+  lbId=id;
+  $("lbImg").innerHTML = photos[id] ? '<img src="'+photos[id]+'" alt="">' : '';
+  const rest = fieldsOf().slice(1).filter(f=>(c.vals||{})[f.id]);
+  $("lbInfo").innerHTML = '<div class="n">No.'+esc(pad(c.no))+'</div>'+
+    '<div class="t">'+esc(mainTxt(c))+'</div>'+
+    rest.map(f=>'<div class="f"><span>'+esc(f.label)+'</span>'+esc(c.vals[f.id])+'</div>').join("");
+  $("lbPick").textContent = (sel===id) ? "已選擇 ✓（點此取消）" : "選擇這位";
+  $("lb").classList.remove("hide");
+}
+$("lbX").onclick = ()=>$("lb").classList.add("hide");
+$("lb").addEventListener("click",e=>{ if(e.target.id==="lb") $("lb").classList.add("hide"); });
+$("lbPick").onclick = ()=>{
+  sel = (sel===lbId) ? null : lbId;
+  $("lb").classList.add("hide");
+  renderGrid(); show("vPick"); renderBar();
+};
+
+function renderBar(){
+  if(!sel || !cands[sel]){ $("bar").classList.add("hide"); return; }
+  const c=cands[sel];
+  $("selInfo").innerHTML = imgHTML(sel)+'<div class="tx"><div class="a">已選擇 No.'+esc(pad(c.no))+'</div><div class="b">'+esc(mainTxt(c))+'</div></div>';
+  $("bar").classList.remove("hide");
+}
+
+$("btnGo").onclick = ()=>{
+  if(!sel||!cands[sel]) return;
+  const c=cands[sel];
+  $("cfThumb").innerHTML = imgHTML(sel);
+  $("cfTxt").textContent = "投給 No."+pad(c.no)+" "+mainTxt(c);
+  $("err").classList.add("hide");
+  $("cfYes").disabled=false; $("cfYes").textContent="確定送出";
+  $("cf").classList.remove("hide");
+};
+$("cfNo").onclick = ()=>{ if(!sending) $("cf").classList.add("hide"); };
+$("cfYes").onclick = async ()=>{
+  if(sending||!sel) return;
+  const err=$("err");
+  if(!cfg || cfg.status!=="open"){
+    err.textContent="投票已截止，無法送出"; err.classList.remove("hide"); return;
+  }
+  sending=true; $("cfYes").disabled=true; $("cfYes").textContent="送出中…"; err.classList.add("hide");
+  const round=(cfg.round||1), pick=sel;
+  try{
+    await db.ref(ROOT+"/votes/"+voterId).set({ c:pick, r:round, at:firebase.database.ServerValue.TIMESTAMP });
+    lsSet(LS+"done_r"+round, pick);
+    $("cf").classList.add("hide");
+    view();
+  }catch(e){
+    err.textContent="送出失敗："+(e&&e.message?e.message:e)+"　請確認網路後再試一次";
+    err.classList.remove("hide");
+    $("cfYes").disabled=false; $("cfYes").textContent="重新送出";
+  }
+  sending=false;
+};
+
+function renderMine(id){
+  const c=cands&&cands[id];
+  $("mine").innerHTML = c
+    ? '<div class="card on" style="cursor:default"><div class="ph">'+(photos[id]?'<img src="'+photos[id]+'" alt="">':'<span class="ph0">PHOTO</span>')+
+      '<span class="no">No.'+esc(pad(c.no))+'</span><span class="chk">✓</span></div>'+
+      '<div class="meta"><div class="nm">'+esc(mainTxt(c))+'</div><div class="s2">'+esc(subTxt(c))+'</div></div></div>'
+    : '';
+}
+
+db.ref(ROOT+"/config").on("value", s=>{ cfg = s.val() || {status:"idle",round:1,fields:[{id:"f1",label:"姓名"}]}; view(); });
+db.ref(ROOT+"/cands").on("value", s=>{ cands = s.val() || {}; view(); });
+db.ref(ROOT+"/photos").on("value", s=>{ photos = s.val() || {}; view(); });
+db.ref(".info/connected").on("value", s=>{ $("conn").textContent = s.val() ? "" : "連線中…"; });
+</script>
+</body>
+</html>
